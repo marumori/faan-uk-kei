@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>返屋企</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+HK:wght@400;500;700&display=swap">
+<style>
+:root{
+  --wall:#dfe9d8;--paper:#fffaf0;--ink:#3a2a22;--soft:#6b5447;--wood:#8a4f34;--wood-dark:#6a3926;--red:#b5483f;--butter:#f7d98c;--line:#d8c6ad;
+  --display:"LXGW WenKai TC","Kaiti TC","KaiTi",serif;--body:"Noto Sans HK","PingFang HK","Microsoft JhengHei",sans-serif;
+  font-size:20px;color-scheme:light;
+}
+:root[data-size="l"]{font-size:23px}:root[data-size="xl"]{font-size:27px}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--wall);color:var(--ink);font:400 1rem/1.65 var(--body);overflow:hidden}
+h1,h2,h3{font-family:var(--display);line-height:1.3;margin:0;text-wrap:balance}
+h1,h2{font-size:1.45rem}h3{font-size:1.15rem}p{margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;min-height:48px;border:2px solid var(--wood);background:var(--paper);border-radius:12px;padding:.35rem .8rem;touch-action:manipulation;transition:background .15s}
+button:hover{background:#fff0d0}
+button:active{transform:translateY(1px)}
+button.main{background:var(--wood);color:#fff;font-weight:700}button.main:hover{background:var(--wood-dark)}
+button[aria-pressed="true"]{background:var(--butter);font-weight:700}
+:focus-visible{outline:4px solid #23699a;outline-offset:3px}
+input,textarea,select{width:100%;min-height:48px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:.4rem .7rem}
+textarea{min-height:7.5em;line-height:1.8;resize:vertical}
+label{display:grid;gap:.2rem;font-weight:500}
+#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.bar{display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;justify-content:space-between;background:var(--paper);border-bottom:2px solid var(--line);padding:.4rem max(14px,env(safe-area-inset-left,0px))}
+.seg{display:flex}.seg button{border-radius:0}.seg button:first-child{border-radius:12px 0 0 12px}.seg button:last-child{border-radius:0 12px 12px 0;border-left:0}
+#stage{position:relative;overflow:hidden;background:#241c17}
+#gl{display:block;width:100%;height:100%;touch-action:none;cursor:grab}#gl:active{cursor:grabbing}
+.lab{position:absolute;left:0;top:0;min-height:40px;padding:.05rem .7rem;border:0;border-radius:999px;background:#fffaf0e6;color:var(--ink);font:700 .95rem/1.5 var(--display);box-shadow:0 2px 10px #3a1a0838;white-space:nowrap;will-change:transform}
+.lab.glow{box-shadow:0 0 18px 4px #ffb84d;background:#fff4d2}
+#hud{position:absolute;left:12px;top:12px;display:flex;flex-wrap:wrap;gap:.35rem;z-index:5;pointer-events:auto}
+#hud button{min-height:40px;padding:.2rem .65rem;font-size:.85rem;background:#fffaf0dd;border-color:#b99d7e}
+#careBanner{position:absolute;right:12px;top:12px;max-width:16rem;background:#fffaf0eb;border:2px solid var(--line);border-radius:14px;padding:.55rem .8rem;font-size:.88rem;box-shadow:0 4px 16px #2a180d30;z-index:5}
+#nogl{padding:1rem;color:#fff}
+.nav{display:flex;gap:.3rem;justify-content:center;background:var(--paper);border-top:2px solid var(--line);padding:.45rem max(14px,env(safe-area-inset-left,0px))}
+.nav button{flex:1 1 0;max-width:8.5rem;padding:.3rem .1rem;font-family:var(--display);font-weight:700;white-space:nowrap}
+@media(max-width:600px){.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.nav button{max-width:none}.bar{justify-content:center}.bar h1{display:none}}
+dialog{border:0;padding:0;margin:auto 0 auto auto;width:min(560px,100%);max-width:100%;height:100%;max-height:100%;background:var(--paper);color:var(--ink);border-radius:22px 0 0 22px;box-shadow:0 20px 60px #5a3a2466;overflow:auto;overscroll-behavior:contain}
+dialog[open]{animation:up .3s ease-out}
+@keyframes up{from{transform:translateY(32px)}}
+dialog::backdrop{background:#2a180d30}
+.head{position:sticky;top:0;z-index:2;background:var(--paper);display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border-bottom:2px solid var(--line)}
+.content{display:grid;gap:1rem;padding:1rem;min-width:0}.content>*{min-width:0}
+@media(max-width:640px){dialog{margin:auto 0 0;height:auto;max-height:72dvh;border-radius:22px 22px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}}
+.row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.note{color:var(--soft);font-size:.92rem}
+.item{border-top:2px solid var(--line);padding-top:.85rem;display:grid;gap:.5rem;overflow-wrap:anywhere}
+.reply{background:#f9e6b6;border-radius:14px;padding:.9rem;display:grid;gap:.45rem}
+.sample{display:inline-block;background:#e4eddd;border-radius:6px;padding:0 .4em;font-size:.82rem;font-weight:500}
+.hold{position:relative;overflow:hidden;min-height:64px;flex:1 1 8.5rem;user-select:none;-webkit-user-select:none}
+.hold i{position:absolute;inset:0;background:var(--butter);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+.hold.on i{transform:scaleX(1);transition:transform 1.1s linear}.hold span{position:relative}
+.photo{width:100%;max-height:360px;object-fit:contain;border-radius:12px;background:#f0e7d6}
+.style-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.6rem;width:100%;text-align:left}
+.style-card{display:grid;gap:.2rem;padding:.7rem .85rem;border:2px solid var(--line);border-radius:14px;background:#fffdf8;cursor:pointer}
+.style-card[aria-pressed="true"]{border-color:var(--wood);background:var(--butter)}
+.style-card b{font-family:var(--display);font-size:1.1rem}
+.style-card small{color:var(--soft);font-size:.82rem;line-height:1.4}
+#door,#nightOverlay,#pinOverlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;overflow:auto;padding:1rem;transition:opacity .8s}
+#door{background:linear-gradient(#fff6e6e6,#f6e2c4eb);backdrop-filter:blur(6px)}
+#door .in{display:grid;gap:.9rem;justify-items:center;text-align:center;max-width:46rem;width:100%}
+#door h1{font-size:2.4rem;letter-spacing:.12em}
+#door.open{opacity:0;pointer-events:none}
+#nightOverlay{background:#0b0f1ae8;color:#f5ebd6;z-index:25;text-align:center}
+#nightOverlay[hidden],#pinOverlay[hidden]{display:none}
+#pinOverlay{background:#fffaf0f8;z-index:30}
+.file{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:48px;border:2px solid var(--wood);border-radius:12px;background:#fff;font-weight:700;padding:.3rem .8rem}.file input{position:absolute;inset:0;opacity:0;cursor:pointer;height:100%}
+blockquote{margin:0;font:400 1.25rem/1.6 var(--display)}
+.sep{aspect-ratio:16/9;width:100%;border-radius:10px;background:linear-gradient(135deg,#ead8b6,#c5a375);display:grid;place-items:center;font-family:var(--display);color:#4a2f1c;padding:1rem}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.cal button{padding:0;min-height:3rem;border:2px solid transparent;border-radius:8px;line-height:1.15;background:#f5ecdb}.cal small{display:block;font-size:.62rem;white-space:nowrap}.cal .good{background:#cfe3c4;font-weight:700}.cal .bad{background:#e6dcd2;color:#6b5447}.cal .main{background:#a8322b;color:#fff}.cal .sel{border-color:var(--ink)}
+#rec.on{background:var(--red);color:#fff}
+#toast{position:fixed;left:16px;right:16px;bottom:5.5rem;margin:auto;width:fit-content;max-width:calc(100% - 32px);background:var(--ink);color:#fff;border-radius:14px;padding:.55rem 1rem;z-index:40}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="bar">
+    <h1>返屋企</h1>
+    <div class="seg" role="group" aria-label="今日想點樣">
+      <button id="mSolo" aria-pressed="true">自己一個</button>
+      <button id="mFam" aria-pressed="false">一家人</button>
+    </div>
+    <div class="row">
+      <button data-open="person">佢嘅嘢</button>
+      <button id="bSet">佈置與備份</button>
+      <button id="bSleep">熄燈瞓覺</button>
+    </div>
+  </header>
+
+  <main id="stage" aria-label="屋企，可以拖動四圍望">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div id="hud">
+      <button id="btnWeather">天氣：晴天</button>
+      <button id="btnMood">心情：平靜</button>
+      <button id="btnNoise">白噪音：關</button>
+    </div>
+    <div id="careBanner" hidden></div>
+    <div id="labs"></div>
+    <div id="nogl" hidden>呢部裝置開唔到立體畫面，下面每個掣照用得。</div>
+  </main>
+
+  <nav class="nav" aria-label="屋企地方">
+    <button data-open="altar" id="navAltar">神位</button>
+    <button data-open="table">飯桌</button>
+    <button data-open="window" id="navWin">窗邊</button>
+    <button data-open="album" id="navAlbum">相簿</button>
+    <button data-open="days" id="navDays">通勝</button>
+    <button data-open="study">書房</button>
+  </nav>
+</div>
+
+<section id="door" aria-label="門口">
+  <div class="in">
+    <h1>返屋企</h1>
+    <p id="doorSub">有嘢想講，隨時返嚟。</p>
+    <div id="doorStyles" class="style-grid"></div>
+    <button class="main" id="enter" style="min-width:12rem">我返嚟喇</button>
+    <p class="note">所有相、信、對話只留喺呢部裝置，可於設定啟用 PIN 碼鎖及匯出備份。</p>
+  </div>
+</section>
+
+<section id="nightOverlay" hidden>
+  <div style="display:grid;gap:1.2rem;max-width:24rem">
+    <h2 style="font-size:1.8rem">早唞，聽日見。</h2>
+    <p style="opacity:.85" id="nightMsg">屋企嘅燈已經熄好，所有說話都幫你收埋喺抽屜。</p>
+    <button class="main" id="wakeBtn">再開燈</button>
+  </div>
+</section>
+
+<section id="pinOverlay" hidden>
+  <div style="display:grid;gap:1rem;max-width:20rem;width:100%;text-align:center">
+    <h2>輸入屋企門鎖密碼</h2>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="輸入 PIN 碼">
+    <button class="main" id="pinUnlock">開門</button>
+  </div>
+</section>
+
+<dialog id="dlg" aria-labelledby="dTitle">
+  <div class="head"><h2 id="dTitle"></h2><button id="dClose">返客廳</button></div>
+  <div class="content" id="dBody"></div>
+</dialog>
+<div id="toast" role="status" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="room.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const KEY='faanukkei_v3';
+
+/* 六款屋企：重塑命名與空間對齊（無公屋／私樓標籤） */
+const HOMES=[
+  {id:'old_estate',type:'compact',era:'80',name:'《舊邨光陰》',desc:'樓底較矮、天花明喉橫樑、水磨石地、摺枱木摺櫈、吊扇與偏黃光管'},
+  {id:'daily_flat',type:'compact',era:'00',name:'《屋邨日常》',desc:'米白牆身、白色鋁窗花、淺色階磚、夾板組合櫃、座地風扇與白光燈'},
+  {id:'micro_reno',type:'compact',era:'now',name:'《公屋微改》',desc:'打通間隔、淺木色地台、假天花、百葉簾、北歐布藝梳化與暖白射燈'},
+  {id:'classic_court',type:'spacious',era:'80',name:'《老牌屋苑》',desc:'空間較闊、柚木地板、特大窗台、實木大櫃、黃銅門柄與暖黃玻璃吊燈'},
+  {id:'millennium_club',type:'spacious',era:'00',name:'《千禧會所》',desc:'雲石紋窗台、米色拋光磚、天花燈槽、入牆飾櫃、落地窗簾與柔和間接光'},
+  {id:'minimal_home',type:'spacious',era:'now',name:'《留白居所》',desc:'無縫木地板、加闊窗台、極簡線條、磁吸軌道燈與落地閱讀燈自然散射光'}
+];
+const WEATHERS=[['clear','晴天'],['rain','落雨'],['typhoon','打風']];
+const MOODS=[['calm','平靜'],['tired','攰'],['anxious','煩']];
+
+let S={
+  visited:false,homeId:'old_estate',size:'m',sound:false,noise:false,weather:'clear',mood:'calm',
+  mode:'solo',altar:'full',name:'嫲嫲',pin:'',
+  memories:[], /* 統一回憶格式：{id,timestamp,type,people,content,mediaRef,source,visibility,unlockAt} */
+  dishes:['蒸水蛋'],chop:false,offer:{},dates:{birth:[8,20],death:[10,28]},
+  traits:[],voices:[],zod:[],sender:'',study:{loc:'',exec:'',wish:'',letter:''}
+};
+let Q=[];
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+S.offer=S.offer&&S.offer.day===dayKey(new Date())?S.offer:{day:dayKey(new Date())};
+const curHome=()=>HOMES.find(x=>x.id===S.homeId)||HOMES[0];
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){toast('儲存失敗');return false}}
+function h(t,a,...k){const e=document.createElement(t);for(const x in a||{}){if(x.startsWith('on'))e[x]=a[x];else if(x==='text')e.textContent=a[x];else if(a[x]===true)e.setAttribute(x,'');else if(a[x]!==false&&a[x]!=null)e.setAttribute(x,a[x])}e.append(...k.flat().filter(x=>x!=null&&x!==false));return e}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+let tt;function toast(m){const t=$('#toast');(dlg.open?dlg:document.body).append(t);t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3200)}
+const dlg=$('#dlg');
+
+/* IndexedDB */
+const mem=new Map();let dbp;
+function idb(){return dbp||(dbp=new Promise((ok,no)=>{const r=indexedDB.open('faanukkei_v3',1);r.onupgradeneeded=()=>r.result.createObjectStore('b');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}))}
+async function putB(id,b){mem.set(id,b);try{const d=await idb();await new Promise((ok,no)=>{const t=d.transaction('b','readwrite');t.objectStore('b').put(b,id);t.oncomplete=ok;t.onerror=()=>no(t.error)})}catch(e){}}
+async function getB(id){if(mem.has(id))return mem.get(id);try{const d=await idb();return await new Promise(ok=>{const r=d.transaction('b','readwrite').objectStore('b').get(id);r.onsuccess=()=>ok(r.result);r.onerror=()=>ok()})}catch(e){}}
+async function delB(id){mem.delete(id);try{(await idb()).transaction('b','readwrite').objectStore('b').delete(id)}catch(e){}}
+const urls=new Map();async function urlOf(id){if(urls.has(id))return urls.get(id);const b=await getB(id);if(!b)return null;const u=URL.createObjectURL(b);urls.set(id,u);return u}
+function media(tag,id,attrs){const e=h(tag,attrs);urlOf(id).then(u=>{if(u)e.src=u;else e.replaceWith(h('p',{class:'note',text:'檔案未喺呢部裝置'}))});return e}
+async function shrink(f){const u=URL.createObjectURL(f);try{const i=new Image();i.src=u;await i.decode();const k=Math.min(1,1400/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement('canvas');c.width=i.naturalWidth*k;c.height=i.naturalHeight*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);return await new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(),'image/jpeg',.85))}finally{URL.revokeObjectURL(u)}}
+
+/* 動態環境白噪音 (Web Audio API，免外部音檔) */
+let ac,noiseNode,noiseGain;
+function chime(f=392){if(!S.sound)return;try{ac=ac||new AudioContext();ac.resume();[1,1.5].forEach((m,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*.14;o.frequency.value=f*m;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+.04);g.gain.exponentialRampToValueAtTime(.0005,t+1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+1.7)})}catch(e){}}
+function updateNoise(){
+  $('#btnNoise').textContent='白噪音：'+(S.noise?'開':'關');
+  if(!S.noise){if(noiseGain)noiseGain.gain.setTargetAtTime(0,ac.currentTime,.2);return}
+  try{
+    ac=ac||new AudioContext();ac.resume();
+    if(!noiseNode){
+      const buf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate),d=buf.getChannelData(0);
+      let last=0;for(let i=0;i<d.length;i++){const w=Math.random()*2-1;d[i]=(last+(.02*w))/1.02;last=d[i];d[i]*=2.5}
+      noiseNode=ac.createBufferSource();noiseNode.buffer=buf;noiseNode.loop=true;
+      const flt=ac.createBiquadFilter();flt.type='lowpass';flt.frequency.value=480;
+      noiseGain=ac.createGain();noiseGain.gain.value=0;
+      noiseNode.connect(flt).connect(noiseGain).connect(ac.destination);noiseNode.start();noiseNode._flt=flt;
+    }
+    const freq=S.weather==='typhoon'?260:S.weather==='rain'?900:S.mode==='fam'?380:220;
+    const vol=S.weather==='typhoon'?.22:S.weather==='rain'?.16:.08;
+    noiseNode._flt.frequency.setTargetAtTime(freq,ac.currentTime,.4);
+    noiseGain.gain.setTargetAtTime(vol,ac.currentTime,.4);
+  }catch(e){}
+}
+function readBtn(text){if(!('speechSynthesis'in window))return null;return h('button',{text:'讀出嚟',onclick(){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='zh-HK';u.rate=.85;speechSynthesis.speak(u)}})}
+
+/* 當年今日與示範相 */
+const ago=n=>{const d=new Date();return dayKey(new Date(d.getFullYear()-n,d.getMonth(),d.getDate()))};
+const demos=[{id:'d1',timestamp:ago(12),type:'photo',content:'佢喺露台曬陳皮，話留返俾你煲糖水。',art:0},{id:'d2',timestamp:ago(7),type:'photo',content:'全家飲茶，佢夾咗最後一粒蝦餃俾你。',art:1}];
+const photosOf=()=>S.memories.filter(m=>m.type==='photo');
+const lettersOf=()=>S.memories.filter(m=>m.type==='letter');
+const art=n=>h('div',{class:'sep',text:n?'示範：一張飲茶嘅舊相':'示範：一張露台嘅舊相'});
+const memCard=m=>[m.art!=null?art(m.art):media('img',m.mediaRef,{class:'photo',alt:m.content||'家庭相片'}),h('p',{},h('b',{text:m.timestamp.replaceAll('-',' . ')+'　'}),m.content||'')];
+
+/* 農曆與通勝 */
+const lf=new Intl.DateTimeFormat('en-u-ca-chinese',{month:'numeric',day:'numeric'});
+function intlMonth(d){const m=lf.formatToParts(d).find(x=>x.type==='month').value;return{m:parseInt(m),leap:/\D/.test(m)}}
+function newMoonDay(k){const T=k/1236.85,r=Math.PI/180,s=x=>Math.sin(x*r),E=1-.002516*T-.0000074*T*T,M=2.5534+29.1053567*k,P=201.5643+385.81693528*k,F=160.7108+390.67050284*k;const j=2451550.09766+29.530588861*k-.4072*s(P)+.17241*E*s(M)+.01608*s(2*P)+.01039*s(2*F);return Math.floor(j-2440587.5+8/24-72/86400)}
+function lunar(d){const n=Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);let k=Math.floor((n-10962)/29.530588861)+1;while(newMoonDay(k)>n)k--;const st=newMoonDay(k),x=new Date(d);x.setDate(x.getDate()-(n-st)+6);return{...intlMonth(x),d:n-st+1}}
+const noon=(o=0)=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()+o,12)};
+const CN='〇一二三四五六七八九十'.split('');
+const cd=n=>n<=10?'初'+CN[n]:n<20?'十'+CN[n-10]:n===20?'二十':n<30?'廿'+CN[n-20]:'三十';
+const cm=m=>m===1?'正月':m<=10?CN[m]+'月':m===11?'十一月':'十二月';
+const GAN='甲乙丙丁戊己庚辛壬癸',ZHI='子丑寅卯辰巳午未申酉戌亥',ZOD='鼠牛虎兔龍蛇馬羊猴雞狗豬',JC='建除滿平定執破危成收開閉';
+function alm(d){const n=Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5),i=((n-10957+54)%60+60)%60,z=i%12,jc=JC[(z+2)%12],clash=ZOD[(z+6)%12],hit=S.zod.includes(clash);return{gz:GAN[i%10]+ZHI[z],jc,clash,hit,lv:jc==='破'||hit?'bad':'除定執成開'.includes(jc)?'good':'mid'}}
+
+/* 場景狀態連動 */
+async function roomState(){
+  const ph=[];for(const p of photosOf().slice(0,3)){const u=await urlOf(p.mediaRef);if(u)ph.push(u)}
+  const L=lunar(noon()),A=alm(noon()),hm=curHome();
+  return{
+    type:hm.type,era:hm.era,incense:S.offer.incense,tea:S.offer.tea,flower:S.offer.flower,altar:S.altar,
+    family:S.mode==='fam',dishes:S.dishes,chop:S.chop,traits:S.traits,photos:ph,
+    portrait:S.portrait?await urlOf('portrait'):null,weather:S.weather,mood:S.mood,
+    lunarText:(L.leap?'閏':'')+cm(L.m)+cd(L.d),almText:A.gz+'日　'+A.jc+'日　沖'+A.clash
+  };
+}
+let ready=false;
+async function scene(){
+  document.documentElement.dataset.size=S.size;
+  $('#mSolo').setAttribute('aria-pressed',S.mode==='solo');
+  $('#mFam').setAttribute('aria-pressed',S.mode==='fam');
+  $('#navAltar').textContent=S.altar==='full'?'神位':'相架';
+  $('#btnWeather').textContent='天氣：'+WEATHERS.find(x=>x[0]===S.weather)[1];
+  $('#btnMood').textContent='心情：'+MOODS.find(x=>x[0]===S.mood)[1];
+  const l=$('#lab-altar');if(l)l.textContent=$('#navAltar').textContent;
+
+  /* 一家人被動關懷提示 */
+  const cb=$('#careBanner'),hr=new Date().getHours();
+  if(S.mode==='fam'){
+    cb.hidden=false;
+    cb.textContent=hr>=21?'爸爸：煲咗湯喺廚房，記得飲。':hr>=12?'細姑（多倫多）：我哋嗰邊朝早，你食咗飯未？':'屋企盞燈開咗，隨時坐低傾兩句。';
+  }else{cb.hidden=true}
+
+  /* 時間膠囊到期 / 當年今日微光提示 */
+  const todayStr=dayKey(new Date()),md=todayStr.slice(5);
+  const unlocked=lettersOf().some(x=>x.unlockAt&&x.unlockAt<=todayStr&&!x.opened);
+  const hasToday=[...photosOf(),...demos].some(p=>p.timestamp.slice(5)===md);
+  $('#lab-window')?.classList.toggle('glow',unlocked);
+  $('#lab-album')?.classList.toggle('glow',hasToday);
+
+  if(ready)Room.set(await roomState());
+  updateNoise();
+}
+
+const PLACES={window:'窗邊',altar:'神位',days:'通勝',album:'相簿',study:'書房',table:'飯桌'};
+async function boot(){
+  const fail=()=>{$('#gl').hidden=true;$('#nogl').hidden=false};
+  if(!window.Room)return fail();
+  for(const k in PLACES)$('#labs').append(h('button',{class:'lab',id:'lab-'+k,'data-open':k,text:PLACES[k],tabindex:'-1',hidden:true}));
+  try{
+    const labs=Object.keys(PLACES).map(k=>[k,$('#lab-'+k)]),st=$('#stage'),hm=curHome();
+    Room.init({canvas:$('#gl'),type:hm.type,era:hm.era,state:await roomState(),onPick:go,onFrame(){
+      const w=st.clientWidth,hh=st.clientHeight;
+      for(const[k,e]of labs){const p=dlg.open?null:Room.project(k);e.hidden=!p;if(p)e.style.transform=`translate(${p[0]*w}px,${p[1]*hh}px) translate(-50%,-50%)`}
+    }});
+    ready=true;scene();
+  }catch(e){console.error(e);fail()}
+}
+
+let goN=0;function go(p){if(p==='person'||p==='settings'||!ready){open(p);return}const n=++goN;Room.go(p,()=>{if(n===goN)open(p)})}
+let cur;function open(p){cur=p;const v=views[p]();$('#dTitle').textContent=v[0];$('#dBody').replaceChildren(...v[1].flat().filter(Boolean));if(!dlg.open){dlg.showModal();if(ready)Room.quiet(true)}dlg.scrollTop=0}
+function re(){const s=dlg.scrollTop;open(cur);dlg.scrollTop=s}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-open]');if(t)go(t.dataset.open)});
+dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});$('#dClose').onclick=()=>dlg.close();
+dlg.addEventListener('close',()=>{if(ready){Room.quiet(false);Room.go('home')}window.speechSynthesis?.cancel();document.body.append($('#toast'))});
+
+function hold(label,doneLabel,isDone,fn){
+  const b=h('button',{class:'hold'},h('i'),h('span',{text:isDone?doneLabel:label}));
+  if(isDone)b.setAttribute('aria-pressed','true');
+  let t,fired;const finish=()=>{fired=true;b.classList.remove('on');fn()};
+  b.onpointerdown=e=>{if(e.button)return;fired=false;b.classList.add('on');t=setTimeout(finish,1000)};
+  const stop=()=>{clearTimeout(t);b.classList.remove('on')};
+  b.onpointerup=b.onpointerleave=b.onpointercancel=stop;
+  b.onclick=()=>{if(!fired)toast('按住一陣，慢慢嚟')};
+  return b;
+}
+function fileBtn(t,a){return h('span',{class:'file'},t,h('input',{type:'file',...a}))}
+function parseChat(x){const o=[];for(const ln of x.replace(/[‎‏‪-‮]/g,'').split(/\r?\n/)){const m=ln.match(/^\[?(\d{1,4}[\/.\-年]\d{1,2}[\/.\-月]\d{1,4}日?)[,，]?\s+([^\]]{3,16}?)(?:\]\s*|\s+[-–]\s+)([^:：]{1,40})[:：]\s?(.*)$/);if(m)o.push({d:m[1],n:m[3].trim(),t:m[4]})}return o.filter(m=>m.t.trim()&&!/omitted|已略去|<附件/i.test(m.t))}
+
+let draft='',draftUnlock='',draftAudio=null,draftImg=null,rec=null;
+async function toggleRec(){
+  const b=$('#rec');if(rec){rec.stop();return}
+  try{const m=await navigator.mediaDevices.getUserMedia({audio:true}),c=[];rec=new MediaRecorder(m);rec.ondataavailable=e=>c.push(e.data);rec.onstop=()=>{m.getTracks().forEach(t=>t.stop());draftAudio=new Blob(c,{type:rec.mimeType});rec=null;b.classList.remove('on');b.textContent='錄低我把聲';re()};rec.start();b.classList.add('on');b.textContent='錄緊，撳一下停'}catch(e){toast('用唔到咪高峰')}
+}
+
+const dishList=['蒸水蛋','豉油雞','蓮藕湯','清炒菜心','橙','白飯'];
+const views={
+  altar(){
+    const full=S.altar==='full',act=(k,msg)=>()=>{S.offer[k]=true;save();scene();re();toast(msg);chime(523);Room?.breeze()};
+    return[(full?'同':'望下')+S.name+(full?'上炷香':'張相'),[
+      h('p',{text:'按住個掣，慢慢嚟。'}),
+      h('div',{class:'row'},full&&hold('點三支香','香已點好',S.offer.incense,act('incense','三炷清香，點好喇')),hold('斟杯茶','茶已斟好',S.offer.tea,act('tea','茶斟好喇')),hold('插枝花','花已插好',S.offer.flower,act('flower','花插好喇'))),
+      h('p',{class:'note',text:'想換相或匯入對話，請去右上角「佢嘅嘢」。'})
+    ]];
+  },
+  table(){
+    const fam=S.mode==='fam',shared=lettersOf().filter(l=>l.visibility==='family_table');
+    const cities=[['細姑','多倫多','America/Toronto','我整咗蒸水蛋，跟返佢嗰個水份。'],['表弟','倫敦','Europe/London','今日落雨，諗起佢成日叫我帶遮。'],['爸爸','香港','Asia/Hong_Kong','煲咗湯喺廚房，大家慢慢食。']];
+    return[fam?'一家人食餐飯':'擺返'+S.name+'鍾意嘅餸',[
+      h('div',{class:'row'},dishList.map(d=>h('button',{text:d,'aria-pressed':String(S.dishes.includes(d)),onclick(){S.dishes=S.dishes.includes(d)?S.dishes.filter(x=>x!==d):[...S.dishes,d];save();scene();chime(440);re()}}))),
+      h('button',{class:'main',text:S.chop?'已經加咗雙筷':'為'+S.name+'加雙筷',onclick(){S.chop=!S.chop;save();scene();re();toast(S.chop?'碗筷擺好，食飯喇':'收好喇')}}),
+      fam?[h('div',{class:'item'},h('h3',{text:'今晚亮咗燈嘅家人'}),cities.map(c=>h('div',{class:'item'},h('p',{},h('b',{text:c[0]+'・'+c[1]+'　'}),new Intl.DateTimeFormat('zh-HK',{timeZone:c[2],hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date())),h('p',{text:c[3]}),readBtn(c[3])))),
+        h('div',{class:'item'},h('h3',{text:'拎出飯桌嘅信'}),shared.length?shared.map(l=>h('div',{class:'item'},h('p',{text:l.content}),h('button',{text:'收返入私人抽屜',onclick(){l.visibility='private';save();re()}}))):h('p',{class:'note',text:'暫時未有。'}))]:
+      h('div',{class:'item'},h('p',{text:'而家得你自己一個。想同親戚一齊亮燈食飯，可切換至「一家人」。'}))
+    ]];
+  },
+  window(){
+    const ta=h('textarea',{placeholder:S.name+'，我今日…',oninput(e){draft=e.target.value}});ta.value=draft;
+    const ul=h('input',{type:'date',value:draftUnlock,onchange(e){draftUnlock=e.target.value}});
+    const todayStr=dayKey(new Date());
+    async function keep(){
+      if(!draft.trim()&&!draftAudio&&!draftImg){toast('寫、講或者加相先');return}
+      const id=uid(),m={id,timestamp:todayStr,type:'letter',people:[S.name],content:draft.trim(),source:'manual',visibility:'private',unlockAt:draftUnlock||null,opened:false};
+      if(draftAudio){m.audioRef='a'+id;await putB(m.audioRef,draftAudio)}
+      if(draftImg){m.mediaRef='i'+id;await putB(m.mediaRef,draftImg)}
+      S.memories.unshift(m);draft='';draftUnlock='';draftAudio=draftImg=null;save();Room?.breeze();chime(480);re();
+      toast(m.unlockAt?'時間膠囊已鎖入抽屜，到期日會發光提示':'收好喺抽屜，窗簾輕輕郁咗一下');
+    }
+    const respBox=h('div',{id:'wresp'});
+    return['窗邊抽屜・靜靜講兩句',[
+      ta,
+      h('label',{},'時間膠囊解鎖日期（留空即隨時可睇）',ul),
+      h('div',{class:'row'},h('button',{id:'rec',text:'錄低我把聲',onclick:toggleRec}),fileBtn('加相',{accept:'image/*',async onchange(e){draftImg=await shrink(e.target.files[0]);toast('已加相')}})),
+      h('div',{class:'row'},h('button',{class:'main',text:'收好喺抽屜',onclick:keep}),h('button',{text:'睇返佢以前講過嘅話',onclick(){
+        if(Q.length){const q=Q[Math.floor(Math.random()*Q.length)];respBox.replaceChildren(h('div',{class:'reply'},h('blockquote',{text:'「'+q.t+'」'}),h('p',{class:'note',text:q.d+'・原文來自匯入對話'})))}
+        else{const p=demos[Math.floor(Math.random()*demos.length)];respBox.replaceChildren(h('div',{class:'reply'},...memCard(p)))}
+      }})),
+      respBox,
+      h('h3',{text:'我嘅抽屜'}),
+      lettersOf().length?lettersOf().map(l=>{
+        const locked=l.unlockAt&&l.unlockAt>todayStr;
+        if(locked)return h('div',{class:'item'},h('p',{text:`🔒 時間膠囊（將於 ${l.unlockAt} 解鎖）`}));
+        if(l.unlockAt&&!l.opened){l.opened=true;save();scene()}
+        return h('div',{class:'item'},h('p',{},h('b',{text:l.timestamp+(l.visibility==='family_table'?'・已放飯桌':'')})),l.content?h('p',{text:l.content}):null,l.mediaRef?media('img',l.mediaRef,{class:'photo'}):null,l.audioRef?media('audio',l.audioRef,{controls:true}):null,
+          h('div',{class:'row'},l.content?readBtn(l.content):'',h('button',{text:l.visibility==='family_table'?'收返私人':'拎出飯桌',onclick(){l.visibility=l.visibility==='family_table'?'private':'family_table';save();re()}}),h('button',{text:'刪除',onclick(){S.memories=S.memories.filter(x=>x!==l);save();re()}})));
+      }):h('p',{class:'note',text:'抽屜仲係空嘅。想講就講。'})
+    ]];
+  },
+  album(){
+    const md=dayKey(new Date()).slice(5),all=[...photosOf(),...demos],today=all.filter(p=>p.timestamp.slice(5)===md);
+    const di=h('input',{type:'date',value:dayKey(new Date())}),ci=h('input',{type:'text',placeholder:'一句回憶'});
+    return['相簿櫃',[
+      h('h3',{text:'當年今日'}),today.map(p=>h('div',{class:'item'},...memCard(p))),
+      h('div',{class:'item'},h('h3',{text:'放相入相簿'}),h('label',{},'日期',di),h('label',{},'回憶文字',ci),fileBtn('揀相',{accept:'image/*',multiple:true,async onchange(e){for(const f of [...e.target.files]){const id='p'+uid();await putB(id,await shrink(f));S.memories.unshift({id,timestamp:di.value||dayKey(new Date()),type:'photo',people:[S.name],content:ci.value.trim(),mediaRef:id,source:'manual',visibility:'private'})}save();scene();re();toast('相已放好')}}))
+    ]];
+  },
+  days(){
+    const d=noon(),L=lunar(d),A=alm(d);
+    return['通勝同大日子',[
+      h('div',{class:'reply'},h('h3',{text:`今日：${d.getMonth()+1}月${d.getDate()}日・${(L.leap?'閏':'')+cm(L.m)+cd(L.d)}`}),h('p',{text:`${A.gz}日，${A.jc}日，沖${A.clash}。`})),
+      h('div',{class:'item'},h('h3',{text:'避開相沖嘅家人生肖'}),h('div',{class:'row'},[...ZOD].map(z=>h('button',{text:z,'aria-pressed':String(S.zod.includes(z)),onclick(){S.zod=S.zod.includes(z)?S.zod.filter(x=>x!==z):[...S.zod,z];save();re()}}))))
+    ]];
+  },
+  study(){
+    const f=(k,label,ph)=>h('label',{},label,h('textarea',{style:'min-height:4.2em',placeholder:ph,value:S.study[k]||'',onchange(e){S.study[k]=e.target.value;save();toast('已儲存於本機書房')}}));
+    return['書房・在世嘅安排',[
+      h('p',{class:'note',text:'平安紙櫃獨立擺喺書房，唔放神位下。只記正本位置、執行人與心願，不放銀行密碼。'}),
+      f('loc','正本放喺邊','例：屋企夾萬，副本喺律師樓'),
+      f('exec','執行人及聯絡','例：大女（電話見聯絡簿）'),
+      f('wish','我嘅心願','例：簡簡單單，播我鍾意嘅歌，大家食餐好'),
+      f('letter','留俾家人嘅信','到指定日子先交到家人手上')
+    ]];
+  },
+  person(){
+    const TR=[['cook','成日煮嘢食'],['care','錫人・門口備遮'],['quiet','靜靜哋歎茶'],['laugh','鍾意打牌'],['tv','鍾意睇電視'],['garden','鍾意種花']];
+    return[S.name+'嘅嘢',[
+      h('label',{},'稱呼',h('input',{value:S.name,onchange(e){S.name=e.target.value.trim()||'嫲嫲';save();re()}})),
+      h('div',{class:'item'},h('h3',{text:'佢張相'}),fileBtn('揀佢嘅相',{accept:'image/*',async onchange(e){await putB('portrait',await shrink(e.target.files[0]));urls.delete('portrait');S.portrait=true;save();scene();toast('相已掛好')}})),
+      h('div',{class:'item'},h('h3',{text:'生活痕跡'}),h('div',{class:'row'},TR.map(([k,t])=>h('button',{text:t,'aria-pressed':String(S.traits.includes(k)),onclick(){S.traits=S.traits.includes(k)?S.traits.filter(x=>x!==k):[...S.traits,k];save();scene();re()}})))),
+      h('div',{class:'item'},h('h3',{text:'匯入 WhatsApp 對話 (.txt)'}),fileBtn('揀對話檔',{accept:'.txt',async onchange(e){const m=parseChat(await e.target.files[0].text());Q=m.slice(-2000).map(x=>({d:x.d,t:x.t.slice(0,250)}));await putB('quotes',new Blob([JSON.stringify(Q)]));toast('已收好 '+Q.length+' 句原文')}}))
+    ]];
+  },
+  settings(){
+    const pinIn=h('input',{type:'password',inputmode:'numeric',maxlength:6,placeholder:'留空即取消密碼',value:S.pin||''});
+    return['佈置、私隱與備份',[
+      h('div',{class:'item'},h('h3',{text:'轉換屋企'}),h('div',{class:'style-grid'},HOMES.map(hm=>h('div',{class:'style-card','aria-pressed':String(S.homeId===hm.id),onclick(){S.homeId=hm.id;save();if(ready)Room.style(hm.type,hm.era);re()}},h('b',{text:hm.name}),h('small',{text:hm.desc}))))),
+      h('div',{class:'item'},h('h3',{text:'字體與擺設'}),h('div',{class:'row'},[['m','大'],['l','更大'],['xl','最大']].map(([k,t])=>h('button',{text:t,'aria-pressed':String(S.size===k),onclick(){S.size=k;save();scene();re()}})),h('button',{text:S.altar==='full'?'神位同香':'只放相架',onclick(){S.altar=S.altar==='full'?'photo':'full';save();scene();re()}}))),
+      h('div',{class:'item'},h('h3',{text:'本機 PIN 碼鎖'}),pinIn,h('button',{text:'儲存門鎖密碼',onclick(){S.pin=pinIn.value.trim();save();toast(S.pin?'已設定門鎖密碼':'已取消門鎖密碼')}})),
+      h('div',{class:'item'},h('h3',{text:'一鍵備份 (.json)'}),h('div',{class:'row'},
+        h('button',{text:'匯出備份檔',onclick(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));a.download='faanukkei-backup.json';a.click();toast('已匯出備份檔')}}),
+        fileBtn('匯入備份檔',{accept:'.json',async onchange(e){try{S=Object.assign(S,JSON.parse(await e.target.files[0].text()));save();scene();toast('已還原備份');re()}catch(x){toast('備份檔格式不正確')}}})
+      ))
+    ]];
+  }
+};
+
+/* 頂部與 HUD 互動 */
+$('#bSet').onclick=()=>open('settings');
+$('#mSolo').onclick=()=>{S.mode='solo';save();scene();toast('自己一個：靜靜哋獨處')};
+$('#mFam').onclick=()=>{S.mode='fam';save();scene();toast('一家人：開燈食飯，異地親戚亮燈')};
+$('#btnWeather').onclick=()=>{const i=(WEATHERS.findIndex(x=>x[0]===S.weather)+1)%WEATHERS.length;S.weather=WEATHERS[i][0];save();scene()};
+$('#btnMood').onclick=()=>{const i=(MOODS.findIndex(x=>x[0]===S.mood)+1)%MOODS.length;S.mood=MOODS[i][0];save();scene()};
+$('#btnNoise').onclick=()=>{S.noise=!S.noise;save();updateNoise()};
+$('#bSleep').onclick=()=>{save();if(ready)Room.sleep(true);$('#nightOverlay').hidden=false};
+$('#wakeBtn').onclick=()=>{if(ready)Room.sleep(false);$('#nightOverlay').hidden=true};
+
+/* 門口動線：首次揀屋，重返直接「我返嚟喇」 */
+function renderDoor(){
+  const box=$('#doorStyles');
+  if(S.visited){
+    box.hidden=true;
+    $('#doorSub').textContent=`返到 ${curHome().name}。今日想同 ${S.name} 講兩句，定靜靜坐一陣？`;
+  }else{
+    box.replaceChildren(...HOMES.map(hm=>h('div',{class:'style-card','aria-pressed':String(S.homeId===hm.id),onclick(){S.homeId=hm.id;save();if(ready)Room.style(hm.type,hm.era);renderDoor()}},h('b',{text:hm.name}),h('small',{text:hm.desc}))));
+  }
+}
+renderDoor();
+$('#enter').onclick=()=>{
+  S.visited=true;save();$('#door').classList.add('open');chime(330);
+  if(ready)Room.go('home');setTimeout(()=>$('#door').hidden=true,800);
+};
+
+/* PIN 碼檢查 */
+if(S.pin){
+  $('#pinOverlay').hidden=false;
+  $('#pinUnlock').onclick=()=>{
+    if($('#pinInput').value.trim()===S.pin){$('#pinOverlay').hidden=true}else{toast('密碼唔啱')}
+  };
+}
+
+getB('quotes').then(async b=>{if(b)Q=JSON.parse(await b.text())}).catch(()=>{});
+scene();boot();
+</script>
+</body>
+</html>
