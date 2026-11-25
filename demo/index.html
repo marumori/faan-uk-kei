@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#efe6d4">
+<title>返屋企 · 互動示範</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><b>返屋企</b><span class="demo-badge">示範 · 全部資料均為虛構</span></div>
+    <div class="tools">
+      <button type="button" id="btnShortcut" class="chip" aria-haspopup="dialog">簡易選單</button>
+      <button type="button" id="btnText" class="chip" aria-pressed="false">大字</button>
+      <button type="button" id="btnMotion" class="chip" aria-pressed="false">減少動畫</button>
+      <button type="button" id="btnHelp" class="chip" aria-haspopup="dialog">操作說明</button>
+      <button type="button" id="btnReset" class="chip">重設示範</button>
+    </div>
+  </header>
+
+  <main id="game-wrap" tabindex="-1" aria-label="返屋企：可以行嘅屋企場景">
+    <div id="game"></div>
+    <p id="zoneLabel" class="zone-label" aria-live="polite">客廳</p>
+    <button type="button" id="cue" class="cue" hidden><kbd>E</kbd><span id="cueText"></span></button>
+    <div id="touchpad" class="touchpad" aria-hidden="true">
+      <button type="button" data-dir="U" tabindex="-1">▲</button>
+      <button type="button" data-dir="L" tabindex="-1">◀</button>
+      <button type="button" data-dir="R" tabindex="-1">▶</button>
+      <button type="button" data-dir="D" tabindex="-1">▼</button>
+    </div>
+  </main>
+
+  <nav class="stops" aria-label="屋企停站：撳一下，角色會自己行過去">
+    <div id="stopBar" class="stop-row"></div>
+  </nav>
+</div>
+
+<!-- 入門 -->
+<section id="door" class="door" aria-labelledby="doorTitle">
+  <div class="door-inner">
+    <div class="door-art" aria-hidden="true"><span class="leaf l"></span><span class="leaf r"></span><span class="plate">陳</span></div>
+    <h1 id="doorTitle">返屋企</h1>
+    <p class="door-family">陳家 — 示範家庭</p>
+    <p class="door-sub">一個走得入去、慢慢建立嘅家庭空間。</p>
+    <div class="door-choices">
+      <button type="button" id="enterWalk" class="choice primary"><b>我返嚟喇</b><small>由門口行入屋，大約 3 至 5 分鐘</small></button>
+      <button type="button" id="enterDirect" class="choice"><b>直接去某個位置</b><small>唔使行，揀一樣嘢直接打開</small></button>
+    </div>
+    <p class="door-note">示範版本：冇真實帳戶、冇真實資料、冇連接任何外部服務。</p>
+  </div>
+</section>
+
+<!-- 面板（HTML/CSS overlay） -->
+<div id="panel" class="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" hidden>
+  <div class="panel-card">
+    <header class="panel-head">
+      <div><p id="panelKicker" class="kicker"></p><h2 id="panelTitle"></h2></div>
+      <button type="button" id="panelClose" class="close" aria-label="關閉（Esc）">關閉 ✕</button>
+    </header>
+    <div id="panelBody" class="panel-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/phaser.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
